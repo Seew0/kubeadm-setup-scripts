@@ -6,7 +6,8 @@ apt-get install -y kitty-terminfo apt-transport-https ca-certificates curl gnupg
 # installing containerd
 curl -LO $(curl -s https://api.github.com/repos/containerd/containerd/releases/latest | grep -E '/containerd-[1-9]{1}.[0-9]{1}.[0-9]{1}-linux-amd64.tar.gz\"$' | cut -d : -f 2,3 | cut -d \" -f 2)
 tar Cxzvf /usr/local containerd-*
-curl https://raw.githubusercontent.com/containerd/containerd/main/containerd.service --output /usr/local/lib/systemd/system/containerd.service
+mkdir -p /usr/local/lib/systemd/system
+curl https://raw.githubusercontent.com/containerd/containerd/main/containerd.service > /usr/local/lib/systemd/system/containerd.service
 systemctl daemon-reload
 systemctl enable --now containerd
 
@@ -22,5 +23,6 @@ tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.1.1.tgz
 # installing kublet kubeadm kubectl
 sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
 echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+apt-get update
 apt-get install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
