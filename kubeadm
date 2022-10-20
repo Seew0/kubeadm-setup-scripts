@@ -1,0 +1,26 @@
+#!/bin/sh
+
+apt-get update && upgrade
+apt-get install -y kitty-terminfo apt-transport-https ca-certificates curl gnupg lsb-release
+
+# installing containerd
+curl -LO $(curl -s https://api.github.com/repos/containerd/containerd/releases/latest | grep -E '/containerd-[1-9]{1}.[0-9]{1}.[0-9]{1}-linux-amd64.tar.gz\"$' | cut -d : -f 2,3 | cut -d \" -f 2)
+tar Cxzvf /usr/local containerd-*
+curl https://raw.githubusercontent.com/containerd/containerd/main/containerd.service --output /usr/local/lib/systemd/system/containerd.service
+systemctl daemon-reload
+systemctl enable --now containerd
+
+#installing runc
+curl -LO https://api.github.com/repos/containerd/containerd/releases/latest/runc.amd64
+install -m 755 runc.amd64 /usr/local/sbin/runc
+
+# installing cni-plugins
+curl -LO $(curl -s https://api.github.com/repos/containernetworking/plugins/releases/latest | grep -E '/cni-plugins-linux-amd64-v[1-9]{1}.[0-9]{1}.[0-9]{1}.tgz' | cut -d : -f 2,3 | cut -d \" -f 2 | head -n 1)
+mkdir -p /opt/cni/bin
+tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.1.1.tgz
+
+# installing kublet kubeadm kubectl
+sudo curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+apt-get install -y kubelet kubeadm kubectl
+apt-mark hold kubelet kubeadm kubectl
